@@ -1,0 +1,17 @@
+# Virtual environments
+venv/
+backend/venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment files
+.env
+
+# Django
+db.sqlite3
+media/
+
+# Node
+frontend/node_modules/
