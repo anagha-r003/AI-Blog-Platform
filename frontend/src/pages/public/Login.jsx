@@ -17,7 +17,7 @@ export default function Login() {
         className="pointer-events-none absolute -top-40 left-1/2 h-96 w-xl -translate-x-1/2 rounded-full opacity-20 blur-3xl"
         style={{
           background:
-            "radial-gradient(circle, rgba(212,175,55,0.35) 0%, rgba(212,175,55,0) 70%)",
+            "radial-gradient(circle, rgba(109,94,245,0.35) 0%, rgba(109,94,245,0) 70%)",
         }}
       />
       <div
@@ -35,7 +35,7 @@ export default function Login() {
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-md"
               style={{
-                background: "linear-gradient(135deg, #E7C667 0%, #B8860B 100%)",
+                background: "linear-gradient(135deg, #6D5EF5 0%, #9B8AFB 100%)",
               }}
             >
               <Feather className="h-5 w-5 text-[#0B0F14]" strokeWidth={2.25} />
@@ -49,7 +49,7 @@ export default function Login() {
                 className="font-semibold"
                 style={{
                   backgroundImage:
-                    "linear-gradient(135deg, #E7C667 0%, #B8860B 100%)",
+                    "linear-gradient(135deg, #6D5EF5 0%, #9B8AFB 100%)",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   color: "transparent",
@@ -61,9 +61,9 @@ export default function Login() {
           </div>
 
           {/* Badge */}
-          <div className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-[#2F6F62]/40 bg-[#2F6F62]/15 px-3 py-1">
-            <Sparkles className="h-3.5 w-3.5 text-[#7FC9B9]" />
-            <span className="text-xs font-medium text-[#7FC9B9]">
+          <div className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-[#6D5EF5]/35 bg-[#6D5EF5]/10 px-3 py-1">
+            <Sparkles className="h-3.5 w-3.5 text-[#8B7CFF]" />
+            <span className="text-xs font-medium text-[#8B7CFF]">
               AI-powered blogging
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function Login() {
           {/* Google */}
           <button
             type="button"
-            className="mt-7 flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A323C] bg-[#171D25] py-2.5 text-sm font-medium text-[#F1ECE2] transition-colors hover:bg-[#1C232C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
+            className="mt-7 flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A323C] bg-[#171D25] py-2.5 text-sm font-medium text-[#F1ECE2] transition-colors hover:bg-[#1C232C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60"
           >
             <GoogleMark />
             Continue with Google
@@ -116,7 +116,8 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-3 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60 focus-visible:border-[#D4AF37]/60"
+                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-3 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
+focus-visible:border-[#7C6CFF]/60"
                 />
               </div>
             </div>
@@ -131,7 +132,7 @@ export default function Login() {
                 </label>
                 <a
                   href="#"
-                  className="text-xs font-medium text-[#C9A227] hover:text-[#E7C667]"
+                  className="text-xs font-medium text-[#8B7CFF] hover:text-[#A79BFF]"
                 >
                   Forgot password?
                 </a>
@@ -144,7 +145,8 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60 focus-visible:border-[#D4AF37]/60"
+                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
+focus-visible:border-[#7C6CFF]/60"
                 />
                 <button
                   type="button"
@@ -163,9 +165,9 @@ export default function Login() {
 
             <button
               type="submit"
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-[#0B0F14] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-[#0B0F14] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60"
               style={{
-                background: "linear-gradient(135deg, #E7C667 0%, #B8860B 100%)",
+                background: "linear-gradient(135deg, #6D5EF5 0%, #9B8AFB 100%)",
               }}
             >
               <Feather className="h-4 w-4" />
@@ -178,7 +180,7 @@ export default function Login() {
             New here?{" "}
             <Link
               to="/register"
-              className="font-medium text-[#C9A227] hover:text-[#E7C667]"
+              className="font-medium text-[#8B7CFF] hover:text-[#A79BFF]"
             >
               Create an account
             </Link>
