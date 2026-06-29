@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'blog',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -125,11 +126,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
-
+ 
 
 SIMPLEJWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=35),
@@ -138,3 +145,11 @@ SIMPLEJWT = {
     'BLACKLIST_AFTER_ROTATATION':True,
     'AUTH_HEADER_TYPEs':('Bearer',),
 }
+
+import os
+from pathlib import Path
+ 
+BASE_DIR = Path(__file__).resolve().parent.parent
+ 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

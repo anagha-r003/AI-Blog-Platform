@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import (
@@ -22,6 +22,7 @@ from .serializers import (
 # ─────────────────────────────────────────────
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -31,6 +32,7 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -124,3 +126,52 @@ class LogoutView(APIView):
         response.delete_cookie('refresh_token', path='/api/')
         return response
 
+
+
+from rest_framework import generics, filters
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .models import Blog
+from .serializers import BlogSerializer
+from .permissions import IsAuthorOrReadOnly
+
+
+class BlogListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/blogs/        — List all published blogs (any user).
+    POST /api/blogs/        — Create a new blog (authenticated users only).
+    """
+    serializer_class = BlogSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    # Optional: filter by status or author, and search by title
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['status', 'author']
+    search_fields = ['title', 'content']
+    ordering_fields = ['created_at', 'updated_at']
+
+    def get_queryset(self):
+        user = self.request.user
+        # Authenticated users can also see their own drafts
+        if user and user.is_authenticated:
+            return Blog.objects.filter(status='published') | Blog.objects.filter(author=user)
+        return Blog.objects.filter(status='published')
+
+    def perform_create(self, serializer):
+        # Automatically assign the logged-in user as the author
+        serializer.save(author=self.request.user)
+
+
+class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET    /api/blogs/<id>/  — Retrieve a single blog.
+    PUT    /api/blogs/<id>/  — Full update (author only).
+    PATCH  /api/blogs/<id>/  — Partial update (author only).
+    DELETE /api/blogs/<id>/  — Delete a blog (author only).
+    """
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]

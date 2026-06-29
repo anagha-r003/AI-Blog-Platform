@@ -119,3 +119,45 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
+    
+
+
+
+
+
+from rest_framework import serializers
+from .models import Blog
+
+
+class BlogSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = Blog
+        fields = [
+            'id',
+            'title',
+            'content',
+            'author',
+            'author_username',
+            'featured_image',
+            'status',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+
+    def validate_featured_image(self, value):
+        """Validate image file type and size."""
+        if value:
+            allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+            if value.content_type not in allowed_types:
+                raise serializers.ValidationError(
+                    "Only JPEG, PNG, and WebP images are allowed."
+                )
+            max_size_mb = 5
+            if value.size > max_size_mb * 1024 * 1024:
+                raise serializers.ValidationError(
+                    f"Image size must not exceed {max_size_mb}MB."
+                )
+        return value
