@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/public/Login";
 import Register from "../pages/public/Register";
 import Dashboard from "../pages/private/Dashboard";
+import AIGeneration from "../pages/private/AIGeneration";
 
 function AppRoutes() {
   return (
@@ -18,6 +19,7 @@ function AppRoutes() {
 
         {/* Private Route (temporary) */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/ai-generation" element={<AIGeneration />} />
 
         {/* Unknown Route */}
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
