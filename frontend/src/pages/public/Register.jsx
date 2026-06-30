@@ -1,21 +1,77 @@
 import { useState } from "react";
-import { Feather, Mail, Lock, User, Eye, EyeOff, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Feather, Mail, Lock, User, Eye, EyeOff, Sparkles, CheckCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../../api/authApi";
+
 // MindQuill — Create account
 // Theme: "Ink & Nib" — near-black ink surface, parchment text, a single
 // warm gold-leaf gradient reserved for the brand mark and the primary action.
-// Mirrors Login.jsx structurally; adds Name + Confirm password.
 
 export default function Register() {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    username: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});   // server field-level errors
+  const [generalError, setGeneralError] = useState(""); // non-field errors
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear that field's error as the user starts typing
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    }
+  };
 
   const passwordsMismatch =
-    confirmPassword.length > 0 && password !== confirmPassword;
+    form.confirm_password.length > 0 && form.password !== form.confirm_password;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFieldErrors({});
+    setGeneralError("");
+
+    if (passwordsMismatch) return; // client-side guard
+
+    setLoading(true);
+    try {
+      await registerUser(form);
+      setSuccess(true);
+      // Redirect to login after a short moment so the user sees the success message
+      setTimeout(() => navigate("/login"), 1800);
+    } catch (err) {
+      const data = err.response?.data;
+      if (data && typeof data === "object") {
+        // Separate field-level errors from non-field errors
+        const { non_field_errors, ...fields } = data;
+        setFieldErrors(fields);
+        if (non_field_errors) {
+          setGeneralError(non_field_errors.join(" "));
+        }
+      } else {
+        setGeneralError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper: render first error for a field (server errors are arrays)
+  const fieldError = (key) => {
+    const err = fieldErrors[key];
+    return err ? (Array.isArray(err) ? err[0] : err) : null;
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#0B0F14] px-4 py-10 sm:px-6 relative overflow-hidden">
@@ -88,154 +144,171 @@ export default function Register() {
             </p>
           </div>
 
-          {/* Google */}
-          <button
-            type="button"
-            className="mt-7 flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A323C] bg-[#171D25] py-2.5 text-sm font-medium text-[#F1ECE2] transition-colors hover:bg-[#1C232C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60"
-          >
-            <GoogleMark />
-            Continue with Google
-          </button>
+          {/* ── Success banner ── */}
+          {success && (
+            <div className="mt-6 flex items-center gap-2.5 rounded-xl border border-[#2F6F62]/50 bg-[#2F6F62]/15 px-4 py-3">
+              <CheckCircle className="h-4 w-4 shrink-0 text-[#4CAF8E]" />
+              <p className="text-sm text-[#4CAF8E]">
+                Account created! Redirecting to sign-in…
+              </p>
+            </div>
+          )}
+
+          {/* ── General error banner ── */}
+          {generalError && !success && (
+            <div className="mt-6 rounded-xl border border-[#E2574C]/40 bg-[#E2574C]/10 px-4 py-3">
+              <p className="text-sm text-[#E2574C]">{generalError}</p>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-[#232B33]" />
-            <span className="text-xs text-[#5C6573]">
-              or sign up with email
-            </span>
+            <span className="text-xs text-[#5C6573]">sign up with email</span>
             <span className="h-px flex-1 bg-[#232B33]" />
           </div>
 
-          {/* Form */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label
-                htmlFor="name"
-                className="mb-1.5 block text-sm font-medium text-[#D7D1C4]"
+          {/* ── Form ── */}
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+
+            {/* Username */}
+            <Field
+              id="username"
+              label="Username"
+              icon={<User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+              error={fieldError("username")}
+            >
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="e.g. johndoe"
+                required
+                className={inputCls(fieldError("username"))}
+              />
+            </Field>
+
+            {/* First name + Last name side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                id="first_name"
+                label="First name"
+                icon={<User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+                error={fieldError("first_name")}
               >
-                Name
-              </label>
-              <div className="relative">
-                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
                 <input
-                  id="name"
+                  id="first_name"
+                  name="first_name"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-3 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
-focus-visible:border-[#7C6CFF]/60"
+                  autoComplete="given-name"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  placeholder="John"
+                  required
+                  className={inputCls(fieldError("first_name"))}
                 />
-              </div>
-            </div>
+              </Field>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-[#D7D1C4]"
+              <Field
+                id="last_name"
+                label="Last name"
+                icon={<User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+                error={fieldError("last_name")}
               >
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-3 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
-focus-visible:border-[#7C6CFF]/60"
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  autoComplete="family-name"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  placeholder="Doe"
+                  required
+                  className={inputCls(fieldError("last_name"))}
                 />
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block text-sm font-medium text-[#D7D1C4]"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
-focus-visible:border-[#7C6CFF]/60"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C6573] hover:text-[#8A94A3] focus-visible:outline-none"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
+            {/* Email */}
+            <Field
+              id="email"
+              label="Email"
+              icon={<Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+              error={fieldError("email")}
+            >
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                required
+                className={inputCls(fieldError("email"))}
+              />
+            </Field>
 
-            <div>
-              <label
-                htmlFor="confirm-password"
-                className="mb-1.5 block text-sm font-medium text-[#D7D1C4]"
-              >
-                Confirm password
-              </label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
-                <input
-                  id="confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  aria-invalid={passwordsMismatch}
-                  className={`w-full rounded-xl border bg-[#0F1419] py-2.5 pl-10 pr-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 ${
-                    passwordsMismatch
-                      ? "border-[#E2574C]/60 focus-visible:ring-[#E2574C]/50 focus-visible:border-[#E2574C]/60"
-                      : "border-[#2A323C] focus-visible:ring-[#7C6CFF]/60 focus-visible:border-[#7C6CFF]/60"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C6573] hover:text-[#8A94A3] focus-visible:outline-none"
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              {passwordsMismatch && (
-                <p className="mt-1.5 text-xs text-[#E2574C]">
-                  Passwords don't match.
-                </p>
-              )}
-            </div>
+            {/* Password */}
+            <Field
+              id="password"
+              label="Password"
+              icon={<Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+              error={fieldError("password")}
+            >
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                className={inputCls(fieldError("password"), "pr-10")}
+              />
+              <ToggleVisibility show={showPassword} onToggle={() => setShowPassword((s) => !s)} />
+            </Field>
 
+            {/* Confirm password */}
+            <Field
+              id="confirm_password"
+              label="Confirm password"
+              icon={<Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />}
+              error={passwordsMismatch ? "Passwords don't match." : fieldError("confirm_password")}
+            >
+              <input
+                id="confirm_password"
+                name="confirm_password"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={form.confirm_password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                aria-invalid={passwordsMismatch}
+                required
+                className={inputCls(
+                  passwordsMismatch || fieldError("confirm_password"),
+                  "pr-10"
+                )}
+              />
+              <ToggleVisibility show={showConfirmPassword} onToggle={() => setShowConfirmPassword((s) => !s)} />
+            </Field>
+
+            {/* Submit */}
             <button
               type="submit"
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60"
+              disabled={loading || success}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition-all hover:-translate-y-0.5 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
               style={{
                 background: "linear-gradient(135deg, #6D5EF5 0%, #9B8AFB 100%)",
               }}
             >
               <Feather className="h-4 w-4" />
-              Create account
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
@@ -244,7 +317,7 @@ focus-visible:border-[#7C6CFF]/60"
             Already have an account?{" "}
             <Link
               to="/login"
-             className="font-medium text-[#8B7CFF] hover:text-[#A79BFF]"
+              className="font-medium text-[#8B7CFF] hover:text-[#A79BFF]"
             >
               Sign in
             </Link>
@@ -255,25 +328,45 @@ focus-visible:border-[#7C6CFF]/60"
   );
 }
 
-function GoogleMark() {
+// ── Small helper components ────────────────────────────────────────────────
+
+function Field({ id, label, icon, error, children }) {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
-      <path
-        fill="#FFC107"
-        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.3 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"
-      />
-      <path
-        fill="#FF3D00"
-        d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 7.3 29.6 5 24 5c-7.6 0-14.2 4.3-17.7 10.7z"
-      />
-      <path
-        fill="#4CAF50"
-        d="M24 44c5.5 0 10.4-2.1 14.1-5.6l-6.5-5.4C29.4 34.9 26.8 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.6 5.1C9.7 39.7 16.3 44 24 44z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.5 5.4C41.5 36 44 30.5 44 24c0-1.3-.1-2.7-.4-3.5z"
-      />
-    </svg>
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[#D7D1C4]">
+        {label}
+      </label>
+      <div className="relative">
+        {icon}
+        {children}
+      </div>
+      {error && (
+        <p className="mt-1.5 text-xs text-[#E2574C]">{error}</p>
+      )}
+    </div>
   );
 }
+
+function ToggleVisibility({ show, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C6573] hover:text-[#8A94A3] focus-visible:outline-none"
+      aria-label={show ? "Hide password" : "Show password"}
+    >
+      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  );
+}
+
+function inputCls(hasError, extra = "") {
+  const base =
+    "w-full rounded-xl border bg-[#0F1419] py-2.5 pl-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2";
+  const err =
+    "border-[#E2574C]/60 focus-visible:ring-[#E2574C]/50 focus-visible:border-[#E2574C]/60";
+  const ok =
+    "border-[#2A323C] focus-visible:ring-[#7C6CFF]/60 focus-visible:border-[#7C6CFF]/60";
+  return `${base} ${hasError ? err : ok} ${extra}`.trim();
+}
+

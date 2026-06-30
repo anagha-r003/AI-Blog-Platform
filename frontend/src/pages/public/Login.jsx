@@ -1,14 +1,48 @@
 import { useState } from "react";
-import { Feather, Mail, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Feather, User, Lock, Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../../api/authApi";
 // MindQuill — Sign in
 // Theme: "Ink & Nib" — near-black ink surface, parchment text, a single
 // warm gold-leaf gradient reserved for the brand mark and the primary action.
 
 export default function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!username || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await loginUser({ username, password });
+      
+      // Store token and user details in localStorage
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      
+      // Redirect to the dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError("Invalid username or password.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#0B0F14] px-4 py-10 sm:px-6 relative overflow-hidden">
@@ -81,6 +115,14 @@ export default function Login() {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mt-6 flex items-center gap-2.5 rounded-xl border border-[#E2574C]/40 bg-[#E2574C]/10 px-4 py-3">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#E2574C]" />
+              <p className="text-sm text-[#E2574C]">{error}</p>
+            </div>
+          )}
+
           {/* Google */}
           <button
             type="button"
@@ -94,28 +136,31 @@ export default function Login() {
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-[#232B33]" />
             <span className="text-xs text-[#5C6573]">
-              or sign in with email
+              or sign in with username
             </span>
             <span className="h-px flex-1 bg-[#232B33]" />
           </div>
 
           {/* Form */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit} noValidate>
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="mb-1.5 block text-sm font-medium text-[#D7D1C4]"
               >
-                Email
+                Username
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
+                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="johndoe"
+                  required
                   className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-3 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
 focus-visible:border-[#7C6CFF]/60"
                 />
@@ -141,10 +186,13 @@ focus-visible:border-[#7C6CFF]/60"
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5C6573]" />
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  required
                   className="w-full rounded-xl border border-[#2A323C] bg-[#0F1419] py-2.5 pl-10 pr-10 text-sm text-[#F1ECE2] placeholder:text-[#5C6573] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60
 focus-visible:border-[#7C6CFF]/60"
                 />
@@ -165,13 +213,14 @@ focus-visible:border-[#7C6CFF]/60"
 
             <button
               type="submit"
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-[#0B0F14] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60"
+              disabled={loading}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-[#0B0F14] shadow-lg shadow-black/30 transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C6CFF]/60 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
               style={{
                 background: "linear-gradient(135deg, #6D5EF5 0%, #9B8AFB 100%)",
               }}
             >
               <Feather className="h-4 w-4" />
-              Sign in
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 

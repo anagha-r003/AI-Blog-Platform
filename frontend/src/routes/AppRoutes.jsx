@@ -3,8 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/public/Login";
 import Register from "../pages/public/Register";
 import Dashboard from "../pages/private/Dashboard";
-import Explore from "../pages/private/Explore";
-import BlogDetail from "../pages/private/BlogDetail";
 
 function AppRoutes() {
   return (
@@ -18,10 +16,8 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Private Routes */}
+        {/* Private Route (temporary) */}
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/explore" element={<Explore />} />
-        <Route path="/blog/:id" element={<BlogDetail />} />
 
         {/* Unknown Route */}
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
