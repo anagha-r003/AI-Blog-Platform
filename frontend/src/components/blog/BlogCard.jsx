@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Clock, Heart, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 /**
  * Reusable blog card used on both Dashboard and Explore pages.
@@ -25,7 +26,10 @@ export default function BlogCard({ post, titleColor = "white" }) {
       : "text-[#F1ECE2] group-hover:text-white";
 
   return (
-    <div className="group relative flex flex-col rounded-2xl overflow-hidden border border-[#1E262F] bg-[#0F1419] hover:border-[#6D5EF5]/40 transition-all duration-300 hover:shadow-xl hover:shadow-[#6D5EF5]/10 hover:-translate-y-1 cursor-pointer">
+    <Link
+      to={`/blog/${post.id}`}
+      className="group relative flex flex-col rounded-2xl overflow-hidden border border-[#1E262F] bg-[#0F1419] hover:border-[#6D5EF5]/40 transition-all duration-300 hover:shadow-xl hover:shadow-[#6D5EF5]/10 hover:-translate-y-1 cursor-pointer"
+    >
       {/* Cover image */}
       <div className="relative h-52 overflow-hidden">
         <img
@@ -104,6 +108,6 @@ export default function BlogCard({ post, titleColor = "white" }) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
